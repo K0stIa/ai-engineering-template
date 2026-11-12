@@ -1,0 +1,19 @@
+name: provenance
+on:
+  pull_request:
+    types: [opened, edited, reopened, synchronize]
+permissions:
+  contents: read
+jobs:
+  statement:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Check PR body without shell interpolation
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}
+        run: |
+          python -c 'import os, subprocess, sys; sys.exit(subprocess.run([sys.executable, "scripts/check_provenance.py"], input=os.environ.get("PR_BODY", ""), text=True).returncode)'

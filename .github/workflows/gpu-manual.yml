@@ -1,0 +1,22 @@
+# No schedule or PR trigger. Requires an explicitly configured trusted GPU runner.
+name: optional-gpu
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  gpu:
+    if: vars.ENABLE_GPU_TESTS == 'true'
+    runs-on: [self-hosted, gpu]
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v4
+      - run: uv sync --frozen --dev
+      - run: uv pip install -r integrations/ml/requirements.txt
+      - run: make test-gpu
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: gpu-evidence
+          path: artifacts/*.xml
